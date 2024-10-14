@@ -33,14 +33,15 @@ def get_card_image_url(id, card_name):
     response = requests.get(search_url)
     if response.status_code == 200:
         card_data = response.json()
-        return card_data['image_uris']['normal']  # You can choose other image sizes
+        #print(card_data['image_uris'])
+        return card_data['image_uris']['png']  # You can choose other image sizes
     else:
         print(f"Failed to fetch card: {id}, {response.status_code}. Trying to search by name - MAKE SURE THE ART IS RIGHT FOR {card_name.upper()}!")
         search_url = f"https://api.scryfall.com/cards/named?exact={card_name}"
         response = requests.get(search_url)
         if response.status_code == 200:
             card_data = response.json()
-            return card_data['image_uris']['normal']  # You can choose other image sizes
+            return card_data['image_uris']['png']  # You can choose other image sizes
         else:
             print(f"Failed to fetch card: {card_name}, {response.status_code}")
             return None
@@ -87,7 +88,7 @@ def download_deck_card_images(moxfield_deck_id):
         card_image_url = get_card_image_url(card_id, card_name)
         if card_image_url:
             # Use the deck name as the folder
-            download_image(card_image_url, f"{card_name}.jpg", folder=deck_name)
+            download_image(card_image_url, f"{card_name}.png", folder=deck_name)
 
 if __name__ == "__main__":
     # Setup argparse to take the Moxfield URL as an argument
