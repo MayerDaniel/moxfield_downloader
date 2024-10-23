@@ -3,6 +3,7 @@ import os
 import re
 import argparse
 import random
+import pprint
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
@@ -18,6 +19,7 @@ user_agent_list = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)",
 ]
 
+
 # Function to fetch deck data from Moxfield
 def get_deck_data(moxfield_deck_id):
     url = f"https://api.moxfield.com/v2/decks/all/{moxfield_deck_id}"
@@ -28,20 +30,27 @@ def get_deck_data(moxfield_deck_id):
         raise Exception(f"Failed to fetch deck: {response.status_code}")
 
 # Function to get card art from Scryfall API
-def get_card_image_url(id, card_name):
+def get_card_image(id, card_name, deck_name):
     search_url = f"https://api.scryfall.com/cards/{id}"
     response = requests.get(search_url)
     if response.status_code == 200:
         card_data = response.json()
-        #print(card_data['image_uris'])
-        return card_data['image_uris']['png']  # You can choose other image sizes
+        if 'image_uris' not in card_data:
+            if 'card_faces' in card_data:
+                # For double-sided cards, download both faces
+                for i, face in enumerate(card_data['card_faces']):
+                    download_image(face['image_uris']['png'], face['name'], folder=deck_name)
+            else:
+                print(f"Failed to fetch card: {id}, no image_uris found. SEND DAN A MESSAGE!")
+        else:
+            download_image(card_data['image_uris']['png'], f"{card_name}.png", folder=deck_name)
     else:
         print(f"Failed to fetch card: {id}, {response.status_code}. Trying to search by name - MAKE SURE THE ART IS RIGHT FOR {card_name.upper()}!")
         search_url = f"https://api.scryfall.com/cards/named?exact={card_name}"
         response = requests.get(search_url)
         if response.status_code == 200:
             card_data = response.json()
-            return card_data['image_uris']['png']  # You can choose other image sizes
+            download_image(card_data['image_uris']['png'], f"{card_name}.png", folder=deck_name)
         else:
             print(f"Failed to fetch card: {card_name}, {response.status_code}")
             return None
@@ -85,10 +94,8 @@ def download_deck_card_images(moxfield_deck_id):
     # For each card, get the image URL from Scryfall and download the image
     for card_name, card in card_slots.items():
         card_id = card['card']['scryfall_id']
-        card_image_url = get_card_image_url(card_id, card_name)
-        if card_image_url:
-            # Use the deck name as the folder
-            download_image(card_image_url, f"{card_name}.png", folder=deck_name)
+        get_card_image(card_id, card_name, deck_name)
+            
 
 if __name__ == "__main__":
     # Setup argparse to take the Moxfield URL as an argument
