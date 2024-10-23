@@ -39,7 +39,7 @@ def get_card_image(id, card_name, deck_name):
             if 'card_faces' in card_data:
                 # For double-sided cards, download both faces
                 for i, face in enumerate(card_data['card_faces']):
-                    download_image(face['image_uris']['png'], face['name'], folder=deck_name)
+                    download_image(face['image_uris']['png'], f"{face['name']}.png", folder=deck_name)
             else:
                 print(f"Failed to fetch card: {id}, no image_uris found. SEND DAN A MESSAGE!")
         else:
