@@ -59,25 +59,29 @@ def extract_deck_id(moxfield_url):
 def download_deck_card_images(moxfield_deck_id):
     deck_data = get_deck_data(moxfield_deck_id)
     deck_name = clean_folder_name(deck_data['name'])
-    card_slots = deck_data['mainboard']
-    for card_name, card in card_slots.items():
-        card_id = card['card']['scryfall_id']
-        get_card_image(card_id, card_name, deck_name)
+    for location in ['mainboard', 'sideboard', 'commanders', 'companions']:
+        if location in deck_data:
+            card_slots = deck_data[location]
+            for card_name, card in card_slots.items():
+                card_id = card['card']['scryfall_id']
+                get_card_image(card_id, card_name, deck_name, location)
+    
 
 # Function to get card art from Scryfall API
-def get_card_image(id, card_name, deck_name):
+def get_card_image(id, card_name, deck_name, location):
     search_url = f"https://api.scryfall.com/cards/{id}"
+    folder = os.path.join(deck_name, location)
     response = requests.get(search_url, headers=HEADERS)
     if response.status_code == 200:
         card_data = response.json()
         if 'image_uris' not in card_data:
             if 'card_faces' in card_data:
                 for face in card_data['card_faces']:
-                    download_image(face['image_uris']['png'], f"{face['name']}.png", folder=deck_name)
+                    download_image(face['image_uris']['png'], f"{face['name']}.png", folder=folder)
             else:
                 print(f"No image found for {id}")
         else:
-            download_image(card_data['image_uris']['png'], f"{card_name}.png", folder=deck_name)
+            download_image(card_data['image_uris']['png'], f"{card_name}.png", folder=folder)
     else:
         print(f"Failed to fetch card: {id}, {response.status_code}")
 
