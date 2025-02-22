@@ -2,7 +2,7 @@ Image downloader for planar party.
 
 Ensure python3 is installed on your computer
 
-run `python3 -m pip install requests`
+run `python3 -m pip install stealth_requests`
 
 then run the script, giving it a moxfield link, like so:
 
